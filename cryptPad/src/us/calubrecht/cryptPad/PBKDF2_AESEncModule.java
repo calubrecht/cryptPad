@@ -2,7 +2,6 @@ package us.calubrecht.cryptPad;
 
 import java.nio.*;
 import java.security.*;
-import java.util.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;

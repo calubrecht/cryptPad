@@ -63,6 +63,7 @@ public class CryptPadApp extends JFrame
     {
       textArea_.setText(fileIO_.loadText(file, pwd));
       setFileName(file);
+      setLastPassword(pwd);
     }
     catch (Exception e)
     {
