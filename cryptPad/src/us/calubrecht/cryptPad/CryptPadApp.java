@@ -16,20 +16,13 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   
   public static String FILE_EXTENSION = "cpf";
 
-  private FileIO fileIO_ = new FileIO();
   private JTextArea textArea_ = new JTextArea();
   private CryptPadDoc doc_ = new CryptPadDoc();
-  File lastFileName_ = null;
-  String lastPassword_ = null;
 
-  public String getLastPassword()
+  
+  public CryptPadDoc getDocument()
   {
-    return lastPassword_;
-  }
-
-  public void setLastPassword(String lastPassword)
-  {
-    lastPassword_ = lastPassword;
+    return doc_;
   }
   
   public String getPwdIfNeeded(File file)
@@ -54,18 +47,13 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     createMenu();
   }
   
-  private void setFileName(File file)
-  {
-    lastFileName_ = file;
-    computeTitle();
-  }
-  
   private void computeTitle()
   {
     String title = APP_TITLE;
-    if (lastFileName_ != null)
+    File fileName = doc_.getLastFileName();
+    if (fileName != null)
     {
-      title += " - " + lastFileName_.getName();
+      title += " - " + fileName.getName();
       if (doc_.isDirty())
       {
         title += " *";
@@ -78,9 +66,8 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   {
     try
     {
-      doc_.setText(fileIO_.loadText(file, pwd), false);
-      setFileName(file);
-      setLastPassword(pwd);
+      doc_.loadFile(file, pwd);
+      computeTitle();
     }
     catch (Exception e)
     {
@@ -102,9 +89,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   {
     try 
     {
-      File fileName = fileIO_.saveText(file, textArea_.getText(), password);
-      doc_.markClean();
-      setFileName(fileName);
+      doc_.saveFile(file, password);
     }
     catch (Exception e)
     {
@@ -118,11 +103,6 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }
   }
   
-  public File getLastFileName()
-  {
-    return lastFileName_;
-  }
-
   private JMenuItem createItem(String text, int mnemonicKey, int accelerator, ActionListener listener)
   {
     JMenuItem item = new JMenuItem(text);
@@ -162,9 +142,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   
   public void clearDoc()
   {
-    lastFileName_ = null;
-    lastPassword_ = null;
-    doc_.setText("", false);
+    doc_.clear();
   }
 
   public void exit()

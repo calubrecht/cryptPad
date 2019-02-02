@@ -11,11 +11,13 @@ public class SaveFileAction implements ActionListener
 
   JFileChooser fc = new JFileChooser();
   CryptPadApp frame_;
+  CryptPadDoc doc_;
   boolean saveAs_;
 
   public SaveFileAction(CryptPadApp frame, boolean saveAs)
   {
     frame_ = frame;
+    doc_ = frame_.getDocument();
     fc.setFileFilter(new FileNameExtensionFilter("CryptPad Files", "cpf"));
     saveAs_ = saveAs;
   }
@@ -23,7 +25,7 @@ public class SaveFileAction implements ActionListener
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    File fileName = frame_.getLastFileName();
+    File fileName = doc_.getLastFileName();
     if (fileName != null)
     {
       if (saveAs_)
@@ -32,7 +34,7 @@ public class SaveFileAction implements ActionListener
       }
       else
       {
-        frame_.saveFile(fileName, frame_.getLastPassword());
+        frame_.saveFile(fileName, doc_.getLastPassword());
         return;
       }
     }
@@ -53,7 +55,7 @@ public class SaveFileAction implements ActionListener
         }
       }
       String pwd = frame_.getPwdIfNeeded(file);
-      frame_.setLastPassword(pwd);
+      doc_.setLastPassword(pwd);
       frame_.saveFile(file, pwd);
     }
     else

@@ -11,10 +11,12 @@ public class LoadFileAction implements ActionListener
 
   JFileChooser fc = new JFileChooser();
   CryptPadApp frame_;
+  CryptPadDoc doc_;
 
   public LoadFileAction(CryptPadApp frame)
   {
     frame_ = frame;
+    doc_ = frame.getDocument();
     fc.setFileFilter(new FileNameExtensionFilter("CryptPad Files", "cpf"));
     fc.addChoosableFileFilter(new FileNameExtensionFilter("Text Files", "txt", "ini", "conf", "xml"));
   }
@@ -22,7 +24,7 @@ public class LoadFileAction implements ActionListener
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    File fileName = frame_.getLastFileName();
+    File fileName = doc_.getLastFileName();
     if (fileName != null)
     {
       fc.setCurrentDirectory(fileName);
