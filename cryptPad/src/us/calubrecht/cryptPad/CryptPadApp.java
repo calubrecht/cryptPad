@@ -7,8 +7,9 @@ import java.awt.event.KeyEvent;
 import java.io.*;
 
 import javax.swing.*;
+import javax.swing.text.*;
 
-public class CryptPadApp extends JFrame
+public class CryptPadApp extends JFrame implements DocChangeListener
 {
 
   private static final long serialVersionUID = 1L;
@@ -18,6 +19,7 @@ public class CryptPadApp extends JFrame
 
   private FileIO fileIO_ = new FileIO();
   private JTextArea textArea_ = new JTextArea();
+  private CryptPadDoc doc_ = new CryptPadDoc();
   File lastFileName_ = null;
   String lastPassword_ = null;
 
@@ -43,6 +45,8 @@ public class CryptPadApp extends JFrame
   public CryptPadApp()
   {
     add(new JScrollPane(textArea_));
+    doc_.addDocChangeListener(this);
+    textArea_.setDocument(doc_);
     setSize(300, 600);
     setLocation(300,100);
     setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("locked.png")));
@@ -54,14 +58,28 @@ public class CryptPadApp extends JFrame
   private void setFileName(File file)
   {
     lastFileName_ = file;
-    setTitle(APP_TITLE + " - " + file.getName());
+    computeTitle();
+  }
+  
+  private void computeTitle()
+  {
+    String title = APP_TITLE;
+    if (lastFileName_ != null)
+    {
+      title += " - " + lastFileName_.getName();
+      if (doc_.isDirty())
+      {
+        title += " *";
+      }
+    }
+    setTitle(title);
   }
 
   public void loadFile(File file, String pwd)
   {
     try
     {
-      textArea_.setText(fileIO_.loadText(file, pwd));
+      doc_.setText(fileIO_.loadText(file, pwd), false);
       setFileName(file);
       setLastPassword(pwd);
     }
@@ -85,7 +103,9 @@ public class CryptPadApp extends JFrame
   {
     try 
     {
-      setFileName(fileIO_.saveText(file, textArea_.getText(), password));
+      File fileName = fileIO_.saveText(file, textArea_.getText(), password);
+      doc_.markClean();
+      setFileName(fileName);
     }
     catch (Exception e)
     {
@@ -188,6 +208,12 @@ public class CryptPadApp extends JFrame
     }
     app.setVisible(true);
 
+  }
+
+  @Override
+  public void docChanged(DocChangeEvent event)
+  {
+    computeTitle();
   }
 
 }
