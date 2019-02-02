@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.io.*;
 
 import javax.swing.*;
+import javax.swing.undo.*;
 
 public class CryptPadApp extends JFrame implements DocChangeListener
 {
@@ -18,6 +19,8 @@ public class CryptPadApp extends JFrame implements DocChangeListener
 
   private JTextArea textArea_ = new JTextArea();
   private CryptPadDoc doc_ = new CryptPadDoc();
+  
+  private UndoManager undoManager_ = new UndoManager();
 
   
   public CryptPadDoc getDocument()
@@ -45,6 +48,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setTitle(APP_TITLE);
     createMenu();
+    doc_.addUndoableEditListener(undoManager_);
   }
   
   private void computeTitle()
@@ -137,12 +141,34 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       }
     }));
     bar.add(fileMenu);
+
+    JMenu editMenu = new JMenu("Edit");
+    editMenu.setMnemonic(KeyEvent.VK_E);
+    editMenu.add(createItem("Undo", KeyEvent.VK_U, KeyEvent.VK_Z, new ActionListener() {public void actionPerformed(ActionEvent e) {undo();}}));
+    editMenu.add(createItem("Redo", KeyEvent.VK_R, KeyEvent.VK_Y, new ActionListener() {public void actionPerformed(ActionEvent e) {redo();}}));
+    bar.add(editMenu);
     setJMenuBar(bar);
   }
   
   public void clearDoc()
   {
     doc_.clear();
+  }
+  
+  public void undo()
+  {
+    if (undoManager_.canUndo())
+    {
+      undoManager_.undo();
+    }
+  }
+  
+  public void redo()
+  {
+    if (undoManager_.canRedo())
+    {
+      undoManager_.redo();
+    }
   }
 
   public void exit()
@@ -198,6 +224,10 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   @Override
   public void docChanged(DocChangeEvent event)
   {
+    if (event.getEvent().equals("load") || event.getEvent().equals("save"))
+    {
+      undoManager_.die();
+    }
     computeTitle();
   }
 
