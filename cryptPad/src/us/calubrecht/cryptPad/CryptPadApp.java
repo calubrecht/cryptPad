@@ -67,11 +67,16 @@ public class CryptPadApp extends JFrame
     catch (Exception e)
     {
       String error = e.getMessage();
+      if (error == null)
+      {
+        error = "Unknown Error";
+      }
       if (error.equals("Tag mismatch!"))
       {
         error = "Password Incorrect";
       }
       JOptionPane.showMessageDialog(this, error, "Load File Error", JOptionPane.ERROR_MESSAGE);
+      e.printStackTrace();
     }
   }
 
@@ -83,7 +88,13 @@ public class CryptPadApp extends JFrame
     }
     catch (Exception e)
     {
-      JOptionPane.showMessageDialog(this, e.getMessage(), "Save File Error", JOptionPane.ERROR_MESSAGE);
+      String error = e.getMessage();
+      if (error == null)
+      {
+        error = "Unknown Error";
+      }
+      JOptionPane.showMessageDialog(this, error, "Save File Error", JOptionPane.ERROR_MESSAGE);
+      e.printStackTrace();
     }
   }
   

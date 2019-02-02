@@ -5,13 +5,21 @@ import java.nio.*;
 import java.security.*;
 import java.util.*;
 
-import javax.crypto.*;
-import javax.crypto.spec.*;
 
 public class FileIO
 {
-  private static final byte[] keyBytes = new byte[]
-  { -104, 19, -117, -5, -8, -63, 31, -3, -55, 60, 23, -33, -50, -8, 72, -104 };
+  static final int DEFAULT_ENCRYPTION_VERSION = 1;
+  
+  Map<Integer, EncryptionModule> encryptionModules_;
+  {
+    EncryptionModule[] modules =  new EncryptionModule[] {new WritePasswordToKeyEncModule()};
+    encryptionModules_ = new HashMap<Integer, EncryptionModule>();
+    for (EncryptionModule module : modules)
+    {
+      assert !encryptionModules_.containsKey(module.getVersion());
+      encryptionModules_.put(module.getVersion(), module);
+    }
+  }
   
   public static boolean isEncryptedFile(File f)
   {
@@ -24,9 +32,13 @@ public class FileIO
     String fileExtension = getFileExtension(f);
     return fileExtension.isEmpty() ? new File(f.getPath() + "." + CryptPadApp.FILE_EXTENSION) : f;
   }
+  
+  private EncryptionModule getEncryptionModule(int encryptionVersion)
+  {
+    return encryptionModules_.get(encryptionVersion);
+  }
 
-  public String loadText(File f, String password) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException,
-      InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+  public String loadText(File f, String password) throws GeneralSecurityException, IOException
   {
     if (!f.exists())
     {
@@ -37,22 +49,13 @@ public class FileIO
       FileInputStream fis = new FileInputStream(f);
       ByteBuffer allBytes = ByteBuffer.wrap(fis.readAllBytes());
       fis.close();
-      int ivLength = allBytes.getInt();
-      if (ivLength < 12 || ivLength >= 16)
-      { // check input parameter
-        throw new IllegalArgumentException("invalid iv length");
+      int encryptionVersion = allBytes.getInt();
+      EncryptionModule encModule = getEncryptionModule(encryptionVersion);
+      if (encModule == null)
+      {
+        throw new IOException("Unknown Encryption Version");
       }
-      byte withPassword = allBytes.get();
-      byte[] iv = new byte[ivLength];
-      allBytes.get(iv);
-      byte[] cipherText = new byte[allBytes.remaining()];
-      allBytes.get(cipherText);
-      SecretKey key = getKey(withPassword == (byte)1 ? password : "");
-
-      final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv); // 128 bit auth tag length
-      cipher.init(Cipher.DECRYPT_MODE, key, parameterSpec);
-      byte[] plainText = cipher.doFinal(cipherText);
+      byte[] plainText = encModule.doDecrypt(allBytes, password);
       return new String(plainText);
     }
     Scanner sc = new Scanner(f);
@@ -79,44 +82,19 @@ public class FileIO
     return "new byte[] {" + String.join(",", stringBytes) + "};";
   }
 
-  public SecretKey getKey(String password)
-  {
-    if (password.isEmpty())
-    {
-      return new SecretKeySpec(keyBytes, "AES");
-    }
-    byte[] thisKey = Arrays.copyOf(keyBytes, keyBytes.length);
-    byte[] passwordBytes = password.getBytes();
-    for (int i = 0; i < password.length(); i++)
-    {
-      thisKey[i] = passwordBytes[i];
-    }
-    return new SecretKeySpec(thisKey, "AES");
-  }
-
-  public File saveText(File f, String text, String password) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException,
-      InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException
+  public File saveText(File f, String text, String password) throws IOException, GeneralSecurityException
   {
     if (isEncryptedFile(f))
     {
-      boolean withPassword = !password.isEmpty();
-      SecretKey key = getKey(password);
-      byte[] iv = new byte[12]; // NEVER REUSE THIS IV WITH SAME KEY
-      SecureRandom secureRandom = new SecureRandom();
-      secureRandom.nextBytes(iv);
-      final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv); // 128 bit auth tag length
-      cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);
-      byte[] cipherText = cipher.doFinal(text.getBytes());
 
-      ByteBuffer byteBuffer = ByteBuffer.allocate(5 + iv.length + cipherText.length);
-      byteBuffer.putInt(iv.length);
-      byteBuffer.put(withPassword ? (byte)1 : (byte)0);
-      byteBuffer.put(iv);
-      byteBuffer.put(cipherText);
-      byte[] cipherMessage = byteBuffer.array();
+      int version = DEFAULT_ENCRYPTION_VERSION;
+      EncryptionModule module = getEncryptionModule(version);
+      byte[] cipherMessage = module.doEncrypt(text,password);
+      ByteBuffer byteBuffer = ByteBuffer.allocate(4 +cipherMessage.length);
+      byteBuffer.putInt(version);
+      byteBuffer.put(cipherMessage);
       FileOutputStream fos = new FileOutputStream(f);
-      fos.write(cipherMessage);
+      fos.write(byteBuffer.array());
       fos.close();
       return f;
     }
