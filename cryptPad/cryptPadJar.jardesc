@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="D:/Users/CALubrecht/Apps/CryptPad.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/cryptPad/cryptPadJar.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=cryptPad/src&lt;us.calubrecht.cryptPad{CryptPadApp.java[CryptPadApp" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <file path="/cryptPad/.classpath"/>
+        <file path="/cryptPad/.project"/>
+        <javaElement handleIdentifier="=cryptPad/src"/>
+    </selectedElements>
+</jardesc>
