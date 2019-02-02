@@ -1,6 +1,5 @@
 package us.calubrecht.cryptPad;
 
-import java.beans.*;
 import java.util.*;
 
 import javax.swing.event.*;
@@ -8,6 +7,7 @@ import javax.swing.text.*;
 
 public class CryptPadDoc extends PlainDocument implements DocumentListener
 {
+  private static final long serialVersionUID = 1L;
   List<DocChangeListener> listeners_ = new ArrayList<DocChangeListener>();
   boolean isDirty_ = false;
   

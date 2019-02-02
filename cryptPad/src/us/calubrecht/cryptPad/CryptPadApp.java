@@ -7,7 +7,6 @@ import java.awt.event.KeyEvent;
 import java.io.*;
 
 import javax.swing.*;
-import javax.swing.text.*;
 
 public class CryptPadApp extends JFrame implements DocChangeListener
 {
@@ -143,6 +142,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     JMenuBar bar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
+    fileMenu.add(createItem("New", KeyEvent.VK_N, KeyEvent.VK_N, new ActionListener() {public void actionPerformed(ActionEvent e) {clearDoc();}}));
     fileMenu.add(createItem("Load", KeyEvent.VK_L, KeyEvent.VK_L, new LoadFileAction(this)));
     fileMenu.add(createItem("Save", KeyEvent.VK_S, KeyEvent.VK_S, new SaveFileAction(this, false)));
     fileMenu.add(createItem("Save As", KeyEvent.VK_A, -1, new SaveFileAction(this, true)));
@@ -158,6 +158,13 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }));
     bar.add(fileMenu);
     setJMenuBar(bar);
+  }
+  
+  public void clearDoc()
+  {
+    lastFileName_ = null;
+    lastPassword_ = null;
+    doc_.setText("", false);
   }
 
   public void exit()
