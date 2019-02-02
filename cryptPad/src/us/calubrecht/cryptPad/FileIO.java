@@ -8,11 +8,11 @@ import java.util.*;
 
 public class FileIO
 {
-  static final int DEFAULT_ENCRYPTION_VERSION = 1;
+  static final int DEFAULT_ENCRYPTION_VERSION = 2;
   
   Map<Integer, EncryptionModule> encryptionModules_;
   {
-    EncryptionModule[] modules =  new EncryptionModule[] {new WritePasswordToKeyEncModule()};
+    EncryptionModule[] modules =  new EncryptionModule[] {new PBKDF2_AESEncModule(), new WritePasswordToKeyEncModule()};
     encryptionModules_ = new HashMap<Integer, EncryptionModule>();
     for (EncryptionModule module : modules)
     {

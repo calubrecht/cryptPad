@@ -1,5 +1,6 @@
 package us.calubrecht.cryptPad;
 
+import java.nio.*;
 import java.util.*;
 
 import javax.crypto.*;
@@ -15,8 +16,22 @@ public class WritePasswordToKeyEncModule extends AESEncModule
     return 1;
   }
   
-  public SecretKey getKey(String password)
+  @Override
+  public byte[] getSaltFromBuffer(ByteBuffer buffer)
   {
+    return new byte[] {};
+  }
+  @Override
+  public byte[] newSalt()
+  {
+    return new byte[] {};
+  }
+  
+  public SecretKey getKey(String password, byte[] salt)
+  {
+    /**
+     * This module does not use salt
+     */
     if (password.isEmpty())
     {
       return new SecretKeySpec(keyBytes, "AES");

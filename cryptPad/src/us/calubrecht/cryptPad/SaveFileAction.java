@@ -46,7 +46,7 @@ public class SaveFileAction implements ActionListener
 
       if (file.exists())
       {
-        if (JOptionPane.showConfirmDialog(frame_, fileName.getPath() + " already exists. Do you want to overwrite?",
+        if (JOptionPane.showConfirmDialog(frame_, file.getPath() + " already exists. Do you want to overwrite?",
             UIManager.getString("OptionPane.titleText"), JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
         {
           return;
