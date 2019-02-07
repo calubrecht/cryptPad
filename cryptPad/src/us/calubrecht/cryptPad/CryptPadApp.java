@@ -6,10 +6,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.*;
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.*;
 import javax.swing.undo.*;
 
 public class CryptPadApp extends JFrame implements DocChangeListener
@@ -17,14 +19,14 @@ public class CryptPadApp extends JFrame implements DocChangeListener
 
   private static final long serialVersionUID = 1L;
   private static final String APP_TITLE = "CryptPad";
-  
+
   public static String FILE_EXTENSION = "cpf";
 
   private JTextArea textArea_ = new JTextArea();
   private CryptPadDoc doc_ = new CryptPadDoc();
-  
+
   private ArrayList<ChangeListener> changeListeners_ = new ArrayList<ChangeListener>();
-  
+
   @SuppressWarnings("serial")
   private UndoManager undoManager_ = new UndoManager()
   {
@@ -35,12 +37,12 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       fireChangeEvent(new ChangeEvent(e));
     }
   };
-  
+
   public CryptPadDoc getDocument()
   {
     return doc_;
   }
-  
+
   public String getPwdIfNeeded(File file)
   {
     if (FileIO.isEncryptedFile(file))
@@ -56,14 +58,14 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     doc_.addDocChangeListener(this);
     textArea_.setDocument(doc_);
     setSize(300, 600);
-    setLocation(300,100);
+    setLocation(300, 100);
     setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("locked.png")));
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setTitle(APP_TITLE);
     createMenu();
     doc_.addUndoableEditListener(undoManager_);
   }
-  
+
   private void computeTitle()
   {
     String title = APP_TITLE;
@@ -104,7 +106,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
 
   public void saveFile(File file, String password)
   {
-    try 
+    try
     {
       doc_.saveFile(file, password);
     }
@@ -119,14 +121,14 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       e.printStackTrace();
     }
   }
-  
+
   private JMenuItem createItem(String text, int mnemonicKey, int accelerator, ActionListener listener)
   {
     JMenuItem item = new JMenuItem(text);
     item.setMnemonic(mnemonicKey);
     if (accelerator >= 0)
     {
-      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit ().getMenuShortcutKeyMaskEx());
+      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 
       item.setAccelerator(ctrKey);
     }
@@ -139,7 +141,13 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     JMenuBar bar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
-    fileMenu.add(createItem("New", KeyEvent.VK_N, KeyEvent.VK_N, new ActionListener() {public void actionPerformed(ActionEvent e) {clearDoc();}}));
+    fileMenu.add(createItem("New", KeyEvent.VK_N, KeyEvent.VK_N, new ActionListener()
+    {
+      public void actionPerformed(ActionEvent e)
+      {
+        clearDoc();
+      }
+    }));
     fileMenu.add(createItem("Load", KeyEvent.VK_L, KeyEvent.VK_L, new LoadFileAction(this)));
     fileMenu.add(createItem("Save", KeyEvent.VK_S, KeyEvent.VK_S, new SaveFileAction(this, false)));
     fileMenu.add(createItem("Save As", KeyEvent.VK_A, -1, new SaveFileAction(this, true)));
@@ -160,16 +168,29 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     editMenu.add(new JMenuItem(new UndoAction()));
     editMenu.add(new JMenuItem(new RedoAction()));
     bar.add(editMenu);
+    JMenu helpMenu = new JMenu("Help");
     bar.add(Box.createHorizontalGlue());
 
+    helpMenu.setMnemonic(KeyEvent.VK_H);
+    JMenuItem about = createItem("About", KeyEvent.VK_A, -1, new ActionListener()
+    {
+      public void actionPerformed(ActionEvent e)
+      {
+        showAboutDialog();
+      }
+    });
+    about.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+    helpMenu.add(about);
+    bar.add(helpMenu);
     setJMenuBar(bar);
   }
-  
+
   public void clearDoc()
   {
     doc_.clear();
   }
-  
+
   public void undo()
   {
     if (undoManager_.canUndo())
@@ -178,7 +199,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       fireChangeEvent(new ChangeEvent("undo"));
     }
   }
-  
+
   public void redo()
   {
     if (undoManager_.canRedo())
@@ -201,7 +222,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       {
         System.out.println(FileIO.generateKey());
       }
- 
+
       return;
     }
     if ((args.length >= 2) && args[0].equals("-out"))
@@ -220,8 +241,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }
     try
     {
-      UIManager.setLookAndFeel(
-          UIManager.getSystemLookAndFeelClassName());
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     }
     catch (Exception e)
     {
@@ -248,7 +268,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }
     computeTitle();
   }
-  
+
   protected void fireChangeEvent(ChangeEvent e)
   {
     for (ChangeListener listener : changeListeners_)
@@ -256,48 +276,56 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       listener.stateChanged(e);
     }
   }
-  
+
   public abstract class MenuAction extends AbstractAction implements ChangeListener
   {
     public MenuAction(String name, int mnemonic, int accelerator)
     {
       super(name);
       putValue(MNEMONIC_KEY, mnemonic);
-      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit ().getMenuShortcutKeyMaskEx());
-      putValue(ACCELERATOR_KEY,ctrKey);
+      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+      putValue(ACCELERATOR_KEY, ctrKey);
       changeListeners_.add(this);
       putValue("enabled", enabled());
     }
-    
+
     @Override
     public void stateChanged(ChangeEvent e)
     {
       System.out.println("Change event " + e + " for " + getValue(NAME));
-      putValue("enabled", enabled()); 
+      putValue("enabled", enabled());
     }
-    
+
     public abstract boolean enabled();
-    
+
   }
-  
+
+  public void showAboutDialog()
+  {
+    JDialog dlg = new AboutDlg(this);
+
+    dlg.setVisible(true);
+
+  }
+
   private class UndoAction extends MenuAction
   {
     public UndoAction()
     {
       super("Undo", KeyEvent.VK_U, KeyEvent.VK_Z);
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      undo(); 
+      undo();
     }
-    
+
     @Override
     public boolean enabled()
     {
-      return undoManager_.canUndo();  
-    }    
+      return undoManager_.canUndo();
+    }
   }
 
   private class RedoAction extends MenuAction
@@ -306,17 +334,17 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     {
       super("Redo", KeyEvent.VK_R, KeyEvent.VK_Y);
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      redo(); 
+      redo();
     }
-    
+
     @Override
     public boolean enabled()
     {
       return undoManager_.canRedo();
-    }    
+    }
   }
 }
