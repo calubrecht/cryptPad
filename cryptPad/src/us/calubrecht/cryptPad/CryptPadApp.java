@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.beans.*;
 import java.io.*;
+import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -21,20 +23,18 @@ public class CryptPadApp extends JFrame implements DocChangeListener
   private JTextArea textArea_ = new JTextArea();
   private CryptPadDoc doc_ = new CryptPadDoc();
   
-  @SuppressWarnings("serial")
-  private UndoManager undoManager_ = new UndoManager() 
-      {
-        @Override
-        public void undoableEditHappened(UndoableEditEvent e)
-        {
-          super.undoableEditHappened(e);
-          undoManagerChanged();
-        }
-      };
+  private ArrayList<ChangeListener> changeListeners_ = new ArrayList<ChangeListener>();
   
-  JMenuItem undoItem_;
-  JMenuItem redoItem_;
-
+  @SuppressWarnings("serial")
+  private UndoManager undoManager_ = new UndoManager()
+  {
+    @Override
+    public void undoableEditHappened(UndoableEditEvent e)
+    {
+      super.undoableEditHappened(e);
+      fireChangeEvent(new ChangeEvent(e));
+    }
+  };
   
   public CryptPadDoc getDocument()
   {
@@ -157,13 +157,11 @@ public class CryptPadApp extends JFrame implements DocChangeListener
 
     JMenu editMenu = new JMenu("Edit");
     editMenu.setMnemonic(KeyEvent.VK_E);
-    undoItem_= createItem("Undo", KeyEvent.VK_U, KeyEvent.VK_Z, new ActionListener() {public void actionPerformed(ActionEvent e) {undo();}});
-    redoItem_= createItem("Redo", KeyEvent.VK_R, KeyEvent.VK_Y, new ActionListener() {public void actionPerformed(ActionEvent e) {redo();}});
-    undoItem_.setEnabled(false);
-    redoItem_.setEnabled(false);
-    editMenu.add(undoItem_);
-    editMenu.add(redoItem_);
+    editMenu.add(new JMenuItem(new UndoAction()));
+    editMenu.add(new JMenuItem(new RedoAction()));
     bar.add(editMenu);
+    bar.add(Box.createHorizontalGlue());
+
     setJMenuBar(bar);
   }
   
@@ -177,7 +175,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     if (undoManager_.canUndo())
     {
       undoManager_.undo();
-      undoManagerChanged();
+      fireChangeEvent(new ChangeEvent("undo"));
     }
   }
   
@@ -186,7 +184,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     if (undoManager_.canRedo())
     {
       undoManager_.redo();
-      undoManagerChanged();
+      fireChangeEvent(new ChangeEvent("redo"));
     }
   }
 
@@ -239,12 +237,6 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     app.setVisible(true);
 
   }
-  
-  public void undoManagerChanged()
-  {
-    undoItem_.setEnabled(undoManager_.canUndo());
-    redoItem_.setEnabled(undoManager_.canRedo());
-  }
 
   @Override
   public void docChanged(DocChangeEvent event)
@@ -252,9 +244,79 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     if (event.getEvent().equals("load") || event.getEvent().equals("save"))
     {
       undoManager_.die();
-      undoManagerChanged();
+      fireChangeEvent(new ChangeEvent(event));
     }
     computeTitle();
   }
+  
+  protected void fireChangeEvent(ChangeEvent e)
+  {
+    for (ChangeListener listener : changeListeners_)
+    {
+      listener.stateChanged(e);
+    }
+  }
+  
+  public abstract class MenuAction extends AbstractAction implements ChangeListener
+  {
+    public MenuAction(String name, int mnemonic, int accelerator)
+    {
+      super(name);
+      putValue(MNEMONIC_KEY, mnemonic);
+      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit ().getMenuShortcutKeyMaskEx());
+      putValue(ACCELERATOR_KEY,ctrKey);
+      changeListeners_.add(this);
+      putValue("enabled", enabled());
+    }
+    
+    @Override
+    public void stateChanged(ChangeEvent e)
+    {
+      System.out.println("Change event " + e + " for " + getValue(NAME));
+      putValue("enabled", enabled()); 
+    }
+    
+    public abstract boolean enabled();
+    
+  }
+  
+  private class UndoAction extends MenuAction
+  {
+    public UndoAction()
+    {
+      super("Undo", KeyEvent.VK_U, KeyEvent.VK_Z);
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      undo(); 
+    }
+    
+    @Override
+    public boolean enabled()
+    {
+      return undoManager_.canUndo();  
+    }    
+  }
 
+  private class RedoAction extends MenuAction
+  {
+    public RedoAction()
+    {
+      super("Redo", KeyEvent.VK_R, KeyEvent.VK_Y);
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      redo(); 
+    }
+    
+    @Override
+    public boolean enabled()
+    {
+      return undoManager_.canRedo();
+    }    
+  }
 }
