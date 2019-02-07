@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.event.*;
 
 public class AboutDlg extends JDialog
@@ -53,10 +54,16 @@ public class AboutDlg extends JDialog
         setVisible(false);
         
       }});
+    JPanel paddingPane = new JPanel();
+    paddingPane.setLayout(new BoxLayout(paddingPane, BoxLayout.Y_AXIS));
+    paddingPane.add(button);
+    paddingPane.setBackground(Color.WHITE);
+    int size = 20;
+    paddingPane.setBorder( new EmptyBorder(size, size, size, size));
     JPanel pane = new JPanel();
     pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
     pane.add(Box.createHorizontalGlue());
-    pane.add(button);
+    pane.add(paddingPane);
     pane.add(Box.createHorizontalGlue());
     pane.setBackground(Color.WHITE);
 

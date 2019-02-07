@@ -4,14 +4,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.beans.*;
 import java.io.*;
-import java.net.*;
 import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.*;
 import javax.swing.undo.*;
 
 public class CryptPadApp extends JFrame implements DocChangeListener
@@ -27,7 +24,6 @@ public class CryptPadApp extends JFrame implements DocChangeListener
 
   private ArrayList<ChangeListener> changeListeners_ = new ArrayList<ChangeListener>();
 
-  @SuppressWarnings("serial")
   private UndoManager undoManager_ = new UndoManager()
   {
     @Override
