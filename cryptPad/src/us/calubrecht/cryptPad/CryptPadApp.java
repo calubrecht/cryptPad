@@ -118,45 +118,17 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }
   }
 
-  private JMenuItem createItem(String text, int mnemonicKey, int accelerator, ActionListener listener)
-  {
-    JMenuItem item = new JMenuItem(text);
-    item.setMnemonic(mnemonicKey);
-    if (accelerator >= 0)
-    {
-      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-
-      item.setAccelerator(ctrKey);
-    }
-    item.addActionListener(listener);
-    return item;
-  }
-
   private void createMenu()
   {
     JMenuBar bar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
-    fileMenu.add(createItem("New", KeyEvent.VK_N, KeyEvent.VK_N, new ActionListener()
-    {
-      public void actionPerformed(ActionEvent e)
-      {
-        clearDoc();
-      }
-    }));
+    fileMenu.add(new JMenuItem(new SimpleAction("New", KeyEvent.VK_N, KeyEvent.VK_N, ()->clearDoc())));
     fileMenu.add(new JMenuItem(new LoadFileAction(this, "Load", KeyEvent.VK_L, KeyEvent.VK_L)));
     fileMenu.add(new JMenuItem(new SaveFileAction(this, "Save", KeyEvent.VK_S, KeyEvent.VK_S, false)));
     fileMenu.add(new JMenuItem(new SaveFileAction(this, "Save As", KeyEvent.VK_A, -1, true)));
-    fileMenu.add(createItem("Exit", KeyEvent.VK_X, KeyEvent.VK_Q, new ActionListener()
-    {
-
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-        exit();
-
-      }
-    }));
+    fileMenu.add(new JMenuItem(new SimpleAction("Exit", KeyEvent.VK_X, KeyEvent.VK_Q, ()->exit())));
+  
     bar.add(fileMenu);
 
     JMenu editMenu = new JMenu("Edit");
@@ -168,16 +140,10 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     bar.add(Box.createHorizontalGlue());
 
     helpMenu.setMnemonic(KeyEvent.VK_H);
-    JMenuItem about = createItem("About", KeyEvent.VK_A, -1, new ActionListener()
-    {
-      public void actionPerformed(ActionEvent e)
-      {
-        showAboutDialog();
-      }
-    });
+    JMenuItem about = new JMenuItem(new SimpleAction("About", KeyEvent.VK_A, -1, ()->showAboutDialog()));
     about.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
     helpMenu.add(about);
+
     bar.add(helpMenu);
     setJMenuBar(bar);
   }
@@ -272,6 +238,16 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       listener.stateChanged(e);
     }
   }
+  
+
+  public void showAboutDialog()
+  {
+    JDialog dlg = new AboutDlg(this);
+
+    dlg.setVisible(true);
+
+  }
+
 
   public abstract class MenuAction extends AbstractAction implements ChangeListener
   {
@@ -290,7 +266,6 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     @Override
     public void stateChanged(ChangeEvent e)
     {
-      System.out.println("Change event " + e + " for " + getValue(NAME));
       putValue("enabled", enabled());
     }
 
@@ -300,13 +275,27 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     }
 
   }
-
-  public void showAboutDialog()
+  
+  public interface ZeroFunction
   {
-    JDialog dlg = new AboutDlg(this);
+     void doIt();
+  }
+  
+  public class SimpleAction extends MenuAction
+  {
+    ZeroFunction f_;
+    
+    public SimpleAction(String name, int mnemonic, int accelerator, ZeroFunction f)
+    {
+      super(name, mnemonic, accelerator);
+      f_ = f;
+    }
 
-    dlg.setVisible(true);
-
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      f_.doIt();
+    }
   }
 
   private class UndoAction extends MenuAction
