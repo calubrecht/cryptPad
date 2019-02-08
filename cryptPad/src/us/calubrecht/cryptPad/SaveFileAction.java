@@ -6,7 +6,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class SaveFileAction implements ActionListener
+public class SaveFileAction extends CryptPadApp.MenuAction
 {
 
   JFileChooser fc = new JFileChooser();
@@ -14,8 +14,9 @@ public class SaveFileAction implements ActionListener
   CryptPadDoc doc_;
   boolean saveAs_;
 
-  public SaveFileAction(CryptPadApp frame, boolean saveAs)
+  public SaveFileAction(CryptPadApp frame, String name, int mnemonic, int accelerator, boolean saveAs)
   {
+    frame.super(name, mnemonic, accelerator);
     frame_ = frame;
     doc_ = frame_.getDocument();
     fc.setFileFilter(new FileNameExtensionFilter("CryptPad Files", "cpf"));

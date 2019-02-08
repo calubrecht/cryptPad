@@ -144,9 +144,9 @@ public class CryptPadApp extends JFrame implements DocChangeListener
         clearDoc();
       }
     }));
-    fileMenu.add(createItem("Load", KeyEvent.VK_L, KeyEvent.VK_L, new LoadFileAction(this)));
-    fileMenu.add(createItem("Save", KeyEvent.VK_S, KeyEvent.VK_S, new SaveFileAction(this, false)));
-    fileMenu.add(createItem("Save As", KeyEvent.VK_A, -1, new SaveFileAction(this, true)));
+    fileMenu.add(new JMenuItem(new LoadFileAction(this, "Load", KeyEvent.VK_L, KeyEvent.VK_L)));
+    fileMenu.add(new JMenuItem(new SaveFileAction(this, "Save", KeyEvent.VK_S, KeyEvent.VK_S, false)));
+    fileMenu.add(new JMenuItem(new SaveFileAction(this, "Save As", KeyEvent.VK_A, -1, true)));
     fileMenu.add(createItem("Exit", KeyEvent.VK_X, KeyEvent.VK_Q, new ActionListener()
     {
 
@@ -279,9 +279,11 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     {
       super(name);
       putValue(MNEMONIC_KEY, mnemonic);
-      KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-      putValue(ACCELERATOR_KEY, ctrKey);
-      changeListeners_.add(this);
+      if (accelerator >= 0)
+      {
+        KeyStroke ctrKey = KeyStroke.getKeyStroke(accelerator, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        putValue(ACCELERATOR_KEY, ctrKey);
+      }
       putValue("enabled", enabled());
     }
 
@@ -292,7 +294,10 @@ public class CryptPadApp extends JFrame implements DocChangeListener
       putValue("enabled", enabled());
     }
 
-    public abstract boolean enabled();
+    public boolean enabled()
+    {
+      return true;
+    }
 
   }
 
@@ -309,6 +314,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     public UndoAction()
     {
       super("Undo", KeyEvent.VK_U, KeyEvent.VK_Z);
+      changeListeners_.add(this);
     }
 
     @Override
@@ -329,6 +335,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     public RedoAction()
     {
       super("Redo", KeyEvent.VK_R, KeyEvent.VK_Y);
+      changeListeners_.add(this);
     }
 
     @Override
