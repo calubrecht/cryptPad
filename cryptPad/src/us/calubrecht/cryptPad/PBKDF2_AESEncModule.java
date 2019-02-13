@@ -55,6 +55,7 @@ public class PBKDF2_AESEncModule extends AESEncModule
   {
     PBKDF2_AESEncModule m = new PBKDF2_AESEncModule();
     byte[] salt = m.newSalt();
+    @SuppressWarnings("unused") // Unused, called to initialize crypto
     SecretKey key = m.getKey("afkjsalkdflasdf234324", salt);
     
     long start = System.currentTimeMillis();
