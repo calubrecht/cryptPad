@@ -7,4 +7,4 @@ To associate this program with .cpf files in windows, compile the app to a jar a
 
 > assoc .cpf="CryptPad File"
 > 
-> ftype "CryptPad File"=<PATH TO JAVA EXECUTABLES>/javaw.exe -jar <PATH TO JAR>\CryptPad.jar %1
+> ftype "CryptPad File"=\<PATH TO JAVA EXECUTABLES\>/javaw.exe -jar \<PATH TO JAR\>\CryptPad.jar %1
