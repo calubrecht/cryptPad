@@ -35,8 +35,7 @@ public class LoadFileAction  extends CryptPadApp.MenuAction
     if (returnVal == JFileChooser.APPROVE_OPTION)
     {
       File file = fc.getSelectedFile();
-      String pwd = frame_.getPwdIfNeeded(file);
-      frame_.loadFile(file, pwd);
+      frame_.loadFile(file);
     }
     else
     {

@@ -76,27 +76,50 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     setTitle(title);
   }
 
-  public void loadFile(File file, String pwd)
+  void loadFile(File file)
   {
-    try
-    {
-      doc_.loadFile(file, pwd);
-      computeTitle();
-    }
-    catch (Exception e)
-    {
-      String error = e.getMessage();
-      if (error == null)
-      {
-        error = "Unknown Error";
-      }
-      if (error.equals("Tag mismatch!"))
-      {
-        error = "Password Incorrect";
-      }
-      JOptionPane.showMessageDialog(this, error, "Load File Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
-    }
+      String pwd = getPwdIfNeeded(file);
+	  while(true)
+	  {
+		  try
+		  {
+			  doc_.loadFile(file, pwd);
+			  computeTitle();
+			  return;
+		  }
+		  catch (Exception e)
+		  {
+		      String error = e.getMessage();
+		      if (error == null)
+		      {
+		        error = "Unknown Error";
+			    JOptionPane.showMessageDialog(this, error, "Load File Error", JOptionPane.ERROR_MESSAGE);
+			    e.printStackTrace();
+			    return;
+		      }
+		      if (error.equals("Tag mismatch!"))
+		      {
+		        error = "Password Incorrect";
+		        String[] buttons = { "Retry Password", "Cancel" };
+
+		        int rc = JOptionPane.showOptionDialog(this, error, "Load File Error",
+		            JOptionPane.ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE, null, buttons, buttons[0]);
+		        
+		        if (rc == 1)
+		        {
+		        	return;
+		        }
+		        pwd = getPwdIfNeeded(file);
+		      }
+		      else
+		      {
+		    	  JOptionPane.showMessageDialog(this, error, "Load File Error", JOptionPane.ERROR_MESSAGE);
+		    	  e.printStackTrace();
+		    	  return;
+		      }
+	  
+		  }
+	  }
   }
 
   public void saveFile(File file, String password)
@@ -213,7 +236,7 @@ public class CryptPadApp extends JFrame implements DocChangeListener
     CryptPadApp app = new CryptPadApp();
     if (args.length == 1)
     {
-      app.loadFile(new File(args[0]), app.getPwdIfNeeded(new File(args[0])));
+      app.loadFile(new File(args[0]));
     }
     app.setVisible(true);
 
